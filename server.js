@@ -9,6 +9,7 @@ const authRoutes    = require('./routes/auth');
 const resumeRoutes  = require('./routes/resume');
 
 const app = express();
+app.set('trust proxy', 1 /* number of proxies between user and server */)
 
 // 1) Security headers
 app.use(helmet());
@@ -36,6 +37,7 @@ const resumeLimiter = rateLimit({
 // 5) Mount routes with their respective limiters
 app.use('/api/auth',   authLimiter,   authRoutes);
 app.use('/api/resume', resumeLimiter, resumeRoutes);
+
 
 // 6) Global error handler
 app.use((err, req, res, next) => {
