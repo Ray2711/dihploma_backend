@@ -7,6 +7,7 @@ const rateLimit     = require('express-rate-limit');
 
 const authRoutes    = require('./routes/auth');
 const resumeRoutes  = require('./routes/resume');
+const chatRoutes   = require('./routes/chat');
 
 const app = express();
 app.set('trust proxy', 1 /* number of proxies between user and server */)
@@ -33,10 +34,13 @@ const resumeLimiter = rateLimit({
   max: 100,
   message: 'Too many resume requests; please try again later.'
 });
+const chatLimiter   = rateLimit({ windowMs:60*1000, max:20,  message:'Too many chat requests; please try later.' });
 
 // 5) Mount routes with their respective limiters
 app.use('/api/auth',   authLimiter,   authRoutes);
 app.use('/api/resume', resumeLimiter, resumeRoutes);
+app.use('/api/build',   chatLimiter,   chatRoutes);
+
 
 
 // 6) Global error handler
