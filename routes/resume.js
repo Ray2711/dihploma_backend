@@ -26,7 +26,7 @@ const resumeValidation = [
   body('experience.role').isString().optional({ nullable: true }),
   body('experience.address').isString().optional({ nullable: true }),
   body('experience.startDate').isISO8601(),
-  body('experience.finishDate').isISO8601().optional({ nullable: true }),
+  body('experience.finishDate').isISO8601().optional({ nullable: true }).not().isEmpty(),
   body('experience.currentlyHere').isBoolean().optional({ nullable: true }),
 
   body('skills').isArray({ min: 1, max: 20 }),
