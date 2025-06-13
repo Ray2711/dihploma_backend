@@ -37,6 +37,7 @@ Instructions:
    - Highlights 2–3 specific experiences or skills that match the job requirements  
    - Demonstrates knowledge of the company’s mission or products  
    - Concludes with a call to action and polite sign-off  
+   - DO NOT leave any template info like [Your Name], always use real data.
 5. Maintain a professional but engaging tone, avoid jargon, and keep paragraphs concise (3–4 sentences each).  
 6. Do not output any JSON—only the finalized cover letter text.
 `.trim();
@@ -52,11 +53,12 @@ router.post(
     return true;
   }),
   async (req, res) => {
+    let resumedata = {}
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       //return res.status(400).json({ errors: errors.array() });
     }
-    let resumedata = {}
+    
     try {
       const result = await pool.query(
         'SELECT resume_data FROM resumes WHERE user_id=$1',
@@ -67,13 +69,12 @@ router.post(
         return res.status(404).json({ error: 'Resume not found' });
       }
       resumedata = result.rows[0].resume_data
-      console.log( resumedata)
     } catch (err) {
       //console.error(err);
       res.status(500).json({ error: 'Server error while fetching resume' });
     }
 
-    console.log(req.body, resumedata)
+    console.log(resumedata,req.body , "niga")
 
     try {
       const coverJson = req.body;
@@ -81,7 +82,7 @@ router.post(
         model: 'gpt-4.1',
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user',   content: JSON.stringify(coverJson, resumedata) }
+          { role: 'user',   content: JSON.stringify(coverJson)  + JSON.stringify(resumedata)}
         ],
         temperature: 0.7
       });
