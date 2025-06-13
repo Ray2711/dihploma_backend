@@ -15,29 +15,30 @@ const openai = new OpenAI({
 
 // System prompt for resume generation
 const SYSTEM_PROMPT = `
-You are CoverGen, an AI assistant specialized in generating professional, ATS-friendly cover letters in Markdown format.
+You are a professional AI assistant whose task is to write a compelling, personalized cover letter by combining information from a candidate’s resume and a target job description.   
+  
+Input: JSON object with job description, title, and resume:  
 
-You will receive a JSON object with this structure:
-{
-  "job_title": "",
-  "job_description":"",
-  "theme":"",
-  "personal": { /* … */ },
-  "education": { /* … */ },
-  "experience": { /* … */ },
-  "skills": ["…"],
-  "certifications": ["…"],
-  "contact": { /* … */ }
-}
-
-Instructions:
-- Parse the JSON and map its fields to distinct cover letter sections.
-- Do NOT use any links except for the LinkedIn (or Headhunter) profile link.
-- Produce a clean Markdown cover letter.
-- Use # for the name, ## for section titles, - or * for bullets, **bold** for dates/company names.
-- Always include blank lines between sections; use --- between major sections.
-- Omit any empty or missing sections.
-- Do NOT include any commentary or the original JSON—only output the final Markdown resume.
+  
+Instructions:  
+1. Parse the JSON input.  
+2. Extract the candidate’s:  
+   - Name and contact details  
+   - Key skills, experiences, and achievements  
+   - Relevant education or certifications  
+3. Extract the role’s:  
+   - Job title and company name  
+   - Core responsibilities and required skills  
+   - Company mission or culture highlights  
+4. Compose a one-page cover letter that:  
+   - Opens with a personalized greeting to the hiring manager (if available) or “Dear Hiring Team”  
+   - Introduces the candidate and states the role they are applying for  
+   - Briefly summarizes why the candidate is excited about the company and the position  
+   - Highlights 2–3 specific experiences or skills that match the job requirements  
+   - Demonstrates knowledge of the company’s mission or products  
+   - Concludes with a call to action and polite sign-off  
+5. Maintain a professional but engaging tone, avoid jargon, and keep paragraphs concise (3–4 sentences each).  
+6. Do not output any JSON—only the finalized cover letter text.
 `.trim();
 
 router.post(
@@ -71,6 +72,8 @@ router.post(
       //console.error(err);
       res.status(500).json({ error: 'Server error while fetching resume' });
     }
+
+    console.log(req.body, resumedata)
 
     try {
       const coverJson = req.body;
