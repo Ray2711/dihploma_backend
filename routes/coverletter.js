@@ -53,7 +53,7 @@ router.post(
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      //return res.status(400).json({ errors: errors.array() });
     }
     let resumedata = {}
     try {
@@ -65,7 +65,7 @@ router.post(
       if (!result.rows.length) {
         return res.status(404).json({ error: 'Resume not found' });
       }
-      resumedata = res.json(result.rows[0].resume_data);
+      resumedata = result.rows[0].resume_data
       console.log( resumedata)
     } catch (err) {
       //console.error(err);
