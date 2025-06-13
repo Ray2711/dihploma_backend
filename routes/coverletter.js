@@ -3,19 +3,25 @@ const express           = require('express');
 const router            = express.Router();
 const auth              = require('../middleware/auth');
 const OpenAI            = require('openai');
+const pool              = require('../config/db');
 const { body, validationResult } = require('express-validator');
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+
+
+
 // System prompt for resume generation
 const SYSTEM_PROMPT = `
-You are ResumeGen, an AI assistant specialized in generating professional, ATS-friendly resumes in Markdown format.
+You are CoverGen, an AI assistant specialized in generating professional, ATS-friendly cover letters in Markdown format.
 
 You will receive a JSON object with this structure:
 {
-  "job_description":{},
+  "job_title": "",
+  "job_description":"",
+  "theme":"",
   "personal": { /* … */ },
   "education": { /* … */ },
   "experience": { /* … */ },
@@ -25,13 +31,11 @@ You will receive a JSON object with this structure:
 }
 
 Instructions:
-- Parse the JSON and map its fields to distinct resume sections.
+- Parse the JSON and map its fields to distinct cover letter sections.
 - Do NOT use any links except for the LinkedIn (or Headhunter) profile link.
-- Place side‐column info (Name, Contact Info, Skills, Certifications) in HTML.
-- Produce a clean Markdown resume with sections: Header, Summary (if any), Experience, Education.
+- Produce a clean Markdown cover letter.
 - Use # for the name, ## for section titles, - or * for bullets, **bold** for dates/company names.
 - Always include blank lines between sections; use --- between major sections.
-- Use HTML for a two-column layout: left column for side info, right column for main sections.
 - Omit any empty or missing sections.
 - Do NOT include any commentary or the original JSON—only output the final Markdown resume.
 `.trim();
@@ -51,14 +55,30 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
+    let resumedata = {}
+    try {
+      const result = await pool.query(
+        'SELECT resume_data FROM resumes WHERE user_id=$1',
+        [req.user]
+      );
+      //console.log(result)
+      if (!result.rows.length) {
+        return res.status(404).json({ error: 'Resume not found' });
+      }
+      resumedata = res.json(result.rows[0].resume_data);
+      console.log( resumedata)
+    } catch (err) {
+      //console.error(err);
+      res.status(500).json({ error: 'Server error while fetching resume' });
+    }
 
     try {
-      const resumeJson = req.body;
+      const coverJson = req.body;
       const completion = await openai.chat.completions.create({
         model: 'gpt-4.1',
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user',   content: JSON.stringify(resumeJson) }
+          { role: 'user',   content: JSON.stringify(coverJson, resumedata) }
         ],
         temperature: 0.7
       });
